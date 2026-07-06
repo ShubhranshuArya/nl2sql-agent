@@ -1,12 +1,12 @@
 from app.state.state import AgentState
-from app.services.llm import get_openai_client, get_model
+from app.services.llm import get_llm_client, get_model
 from app.tools.schema import get_database_schema_string
 
 async def sql_generator_node(state: AgentState):
     """
     Generates a SQL query based on the user query and selected table schemas.
     """
-    client = get_openai_client()
+    client = get_llm_client()
     
     selected_tables = state["selected_tables"]
     schema_context = get_database_schema_string(selected_tables)

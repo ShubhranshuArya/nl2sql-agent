@@ -8,23 +8,24 @@ load_dotenv()
 
 _client = None
 
-def get_openai_client() -> AsyncOpenAI:
-    """Returns a configured, provider-agnostic OpenAI-compatible client.
+def get_llm_client() -> AsyncOpenAI:
+    """Returns a configured, model-agnostic LLM client.
 
     Reads LLM_API_KEY and optional LLM_BASE_URL from the environment so any
-    OpenAI-compatible endpoint (OpenAI, Amazon Bedrock mantle, Groq, etc.) works.
+    LLM endpoint exposing a Chat Completions API (e.g. Amazon Bedrock, or other
+    providers) works without code changes. LLM_BASE_URL selects the provider.
     """
     global _client
     if _client is None:
         api_key = os.getenv("LLM_API_KEY")
-        base_url = os.getenv("LLM_BASE_URL") or None  # None => OpenAI default
+        base_url = os.getenv("LLM_BASE_URL") or None  # None => provider default
         if not api_key:
             print("Warning: LLM_API_KEY not found in environment variables.")
         _client = AsyncOpenAI(api_key=api_key, base_url=base_url)
     return _client
 
 def get_model() -> str:
-    """Returns the configured model id, defaulting to gpt-4o."""
+    """Returns the configured model id."""
     return os.getenv("LLM_MODEL", "gpt-4o")
 
 def parse_json_response(content: str) -> dict:

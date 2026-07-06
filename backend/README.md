@@ -48,8 +48,8 @@ graph TD
 5.  **SQL Validator**: Checks the generated SQL for safety (e.g., no DROP/DELETE) and syntax errors.
 6.  **SQL Executor**: Runs the query against the `ecommerce.db` SQLite database.
 7.  **Response Synthesizer**: Converts the database results into a natural language answer.
-8.  **Visualization Planner**: Analyzes the data to determine if a chart is appropriate.
-9.  **Visualization Generator**: Creates a Vega-Lite JSON specification for data visualization.
+8.  **Visualization Planner**: Analyzes the data to determine if a chart is appropriate and selects a chart type (bar/line/pie/scatter).
+9.  **Visualization Generator**: Creates a Vega-Lite v6 JSON specification, grounded in curated v6 few-shot examples. The result data and the v6 `$schema` are injected server-side (not round-tripped through the LLM).
 10. **General Agent**: Handles out-of-scope queries with helpful guidance.
 
 ## Setup
@@ -72,10 +72,12 @@ graph TD
     ```
 
 4.  Set up environment variables:
-    Create a `.env` file in the `backend` directory and add your OpenAI API key:
+    Create a `.env` file in the `backend` directory (see `.env.example`) and configure your model-agnostic LLM credentials:
 
     ```env
-    OPENAI_API_KEY=sk-...
+    LLM_API_KEY=your_api_key_here
+    LLM_BASE_URL=
+    LLM_MODEL=<a model id served by the endpoint>
     ```
 
 ### Running the Server

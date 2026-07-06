@@ -9,13 +9,18 @@ from typing import List, Dict, Any
 DB_PATH = Path(__file__).parents[1] / "data" / "ecommerce.db"
 
 def get_db_connection():
-    """Establishes a connection to the SQLite database."""
+    """Establishes a read-only connection to the SQLite database."""
     try:
         if not DB_PATH.exists():
             raise FileNotFoundError(f"Database not found at {DB_PATH}")
         
-        conn = sqlite3.connect(DB_PATH)
+        # Open in read-only mode via URI so no statement can mutate the DB,
+        # regardless of the SQL passed in.
+        uri = f"file:{DB_PATH}?mode=ro"
+        conn = sqlite3.connect(uri, uri=True)
         conn.row_factory = sqlite3.Row  # Return rows as dict-like objects
+        # Defense in depth: reject any attempt to write within this connection.
+        conn.execute("PRAGMA query_only = ON;")
         return conn
     except Exception as e:
         raise ConnectionError(f"Failed to connect to database: {e}")

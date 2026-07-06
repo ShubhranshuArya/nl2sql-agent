@@ -1,0 +1,359 @@
+# Data Dictionary - Global E-Commerce & Supply Chain Database
+# Single source of truth for LLM-facing semantics (descriptions, enums,
+# relationships, notes). Column names and types are read live from the DB;
+# this file only augments them with meaning. Keep in sync with context/data-card.md.
+
+domain: >
+  A global e-commerce and supply chain analytics database. It contains information
+  about customers, products, transactions (sales orders), returns, inventory levels,
+  price history, supplier costs, and marketing spend. All monetary values are in USD.
+  Dates are formatted YYYY-MM-DD; monthly periods are formatted YYYY-MM.
+
+# Join keys between tables. "soft" means a logical link with no formal foreign key.
+relationships:
+  - from: transactions.customer_id
+    to: customers.customer_id
+    cardinality: many-to-one
+  - from: transactions.product_id
+    to: products.product_id
+    cardinality: many-to-one
+  - from: returns.transaction_id
+    to: transactions.transaction_id
+    cardinality: one-to-one
+    note: Each return references one transaction; only a subset of transactions have returns.
+  - from: returns.customer_id
+    to: customers.customer_id
+    cardinality: many-to-one
+  - from: returns.product_id
+    to: products.product_id
+    cardinality: many-to-one
+  - from: inventory.product_id
+    to: products.product_id
+    cardinality: one-to-one
+  - from: price_history.product_id
+    to: products.product_id
+    cardinality: many-to-one
+  - from: supplier_costs.product_id
+    to: products.product_id
+    cardinality: many-to-one
+  - from: marketing_spend.channel
+    to: transactions.channel
+    cardinality: soft
+    note: Soft link on channel name; no foreign key.
+
+tables:
+  customers:
+    description: Registered customer accounts and demographics. Hub entity keyed by customer_id.
+    primary_key: [customer_id]
+    columns:
+      customer_id:
+        type: str
+        description: Unique customer ID (e.g. CUST00001)
+      first_name:
+        type: str
+        description: First name
+      last_name:
+        type: str
+        description: Last name
+      country:
+        type: str
+        description: Country of residence
+      currency:
+        type: str
+        description: Preferred currency code (e.g. GBP, USD, EUR)
+      age:
+        type: int
+        description: Age in years
+      gender:
+        type: str
+        description: Gender
+        enum: [M, F, Other]
+      registration_date:
+        type: date
+        description: Sign-up date
+      is_premium:
+        type: bool
+        description: Premium membership flag
+      email_verified:
+        type: bool
+        description: Whether email is verified
+      email:
+        type: str
+        description: Email address
+
+  products:
+    description: Master catalog of sellable products. Hub entity keyed by product_id.
+    primary_key: [product_id]
+    columns:
+      product_id:
+        type: str
+        description: Unique product ID (e.g. PROD0001)
+      name:
+        type: str
+        description: Product display name
+      category:
+        type: str
+        description: Product category (e.g. Books, Clothing, Electronics)
+      brand:
+        type: str
+        description: Brand name
+      unit_price_usd:
+        type: float
+        description: Current list selling price
+      unit_cost_usd:
+        type: float
+        description: Current unit cost
+      weight_kg:
+        type: float
+        description: Weight in kilograms
+      is_active:
+        type: bool
+        description: Whether currently sold
+      launch_date:
+        type: date
+        description: First availability date
+
+  transactions:
+    description: Line-item sales orders. Central fact table; enrich via products and customers.
+    primary_key: [transaction_id]
+    columns:
+      transaction_id:
+        type: str
+        description: Unique transaction ID (e.g. TXN000001)
+      customer_id:
+        type: str
+        description: FK to customers
+      product_id:
+        type: str
+        description: FK to products
+      date:
+        type: date
+        description: Order date
+      quantity:
+        type: int
+        description: Units purchased
+      unit_price_usd:
+        type: float
+        description: Price per unit at sale time
+      discount_pct:
+        type: float
+        description: Discount fraction (0-1)
+      revenue_usd:
+        type: float
+        description: Net revenue (after discount)
+      cost_usd:
+        type: float
+        description: Total cost of goods
+      profit_usd:
+        type: float
+        description: revenue minus cost
+      shipping_cost_usd:
+        type: float
+        description: Shipping cost
+      channel:
+        type: str
+        description: Acquisition channel
+        enum: [organic_search, paid_search, social_media, email, direct, referral]
+      payment_method:
+        type: str
+        description: Payment method
+        enum: [credit_card, paypal, bank_transfer, debit_card]
+      status:
+        type: str
+        description: Order status (e.g. completed)
+      country:
+        type: str
+        description: Destination country
+      category:
+        type: str
+        description: Product category (denormalized from products)
+
+  returns:
+    description: Product returns tied to a transaction. FK to transactions, customers, products.
+    primary_key: [return_id]
+    columns:
+      return_id:
+        type: str
+        description: Unique return ID (e.g. RET00001)
+      transaction_id:
+        type: str
+        description: FK to transactions
+      customer_id:
+        type: str
+        description: FK to customers
+      product_id:
+        type: str
+        description: FK to products
+      return_date:
+        type: date
+        description: Date of return
+      reason:
+        type: str
+        description: Reason for return
+        enum: [not_as_described, wrong_item, defective, late_delivery, changed_mind]
+      refund_amount_usd:
+        type: float
+        description: Amount refunded
+      restocked:
+        type: bool
+        description: Whether item was restocked
+
+  inventory:
+    description: Current warehouse stock, one row per product.
+    primary_key: [product_id]
+    columns:
+      product_id:
+        type: str
+        description: FK to products (also PK)
+      category:
+        type: str
+        description: Product category
+      stock_units:
+        type: int
+        description: Units currently in stock
+      reorder_point:
+        type: int
+        description: Stock level triggering reorder
+      warehouse_location:
+        type: str
+        description: Warehouse region (e.g. US-West, EU-Central, APAC)
+      last_restock_date:
+        type: date
+        description: Most recent restock date
+      supplier_lead_days:
+        type: int
+        description: Lead time for replenishment
+
+  price_history:
+    description: Monthly pricing and sales snapshot per product. FK to products.
+    primary_key: [product_id, year_month]
+    columns:
+      product_id:
+        type: str
+        description: FK to products
+      category:
+        type: str
+        description: Product category
+      year_month:
+        type: str
+        description: Period (YYYY-MM)
+      listed_price_usd:
+        type: float
+        description: Actual listed price that month
+      base_price_usd:
+        type: float
+        description: Reference/base price
+      competitor_price_usd:
+        type: float
+        description: Competitor's price
+      price_index:
+        type: float
+        description: listed / base price ratio
+      is_promotional:
+        type: bool
+        description: Whether on promotion
+      price_elasticity:
+        type: float
+        description: Demand elasticity estimate
+      units_sold:
+        type: int
+        description: Units sold that month
+      revenue_usd:
+        type: float
+        description: Revenue that month
+      margin_pct:
+        type: float
+        description: Margin fraction
+
+  supplier_costs:
+    description: Supplier sourcing options per product; multiple suppliers ranked. FK to products.
+    primary_key: [product_id, supplier_name]
+    columns:
+      product_id:
+        type: str
+        description: FK to products
+      category:
+        type: str
+        description: Product category
+      supplier_name:
+        type: str
+        description: Supplier name (e.g. BookSupply DE)
+      supplier_rank:
+        type: int
+        description: Preference rank (1 = best)
+      unit_cost_usd:
+        type: float
+        description: Cost per unit from this supplier
+      ordering_cost_usd:
+        type: float
+        description: Fixed cost per order
+      annual_holding_cost_usd:
+        type: float
+        description: Annual holding cost
+      holding_cost_pct:
+        type: float
+        description: Holding cost as fraction of value
+      lead_time_days:
+        type: int
+        description: Delivery lead time
+      min_order_qty:
+        type: int
+        description: Minimum order quantity
+      reliability_score:
+        type: float
+        description: Supplier reliability (0-1)
+      is_primary:
+        type: bool
+        description: Whether primary supplier (rank 1)
+
+  marketing_spend:
+    description: Monthly marketing performance per channel. Soft link to transactions via channel.
+    primary_key: [year_month, channel]
+    columns:
+      year_month:
+        type: str
+        description: Period (YYYY-MM)
+      channel:
+        type: str
+        description: Marketing channel (matches transactions.channel)
+      spend_usd:
+        type: float
+        description: Ad spend
+      impressions:
+        type: int
+        description: Impressions served
+      clicks:
+        type: int
+        description: Clicks received
+      ctr:
+        type: float
+        description: Click-through rate
+      actual_orders:
+        type: int
+        description: Orders attributed
+      actual_customers:
+        type: int
+        description: Customers attributed
+      actual_revenue_usd:
+        type: float
+        description: Attributed revenue
+      roas:
+        type: float
+        description: Return on ad spend
+      cac_usd:
+        type: float
+        description: Customer acquisition cost
+      cost_per_order_usd:
+        type: float
+        description: Cost per order
+      month_multiplier:
+        type: float
+        description: Seasonal multiplier
+
+# General guidance surfaced to the SQL generator.
+notes:
+  - Join sales analysis on `transactions` as the fact table; enrich via `products` and `customers`.
+  - "`category` and `unit_price_usd` are denormalized into several tables; prefer `products`/`transactions` as the source of truth for a given question."
+  - "Time-series questions: use `price_history.year_month` and `marketing_spend.year_month`."
+  - "`inventory` is per-product (1:1); `supplier_costs` and `price_history` are 1:many per product."
+  - Database is read-only for the agent; no table has update-in-place semantics.

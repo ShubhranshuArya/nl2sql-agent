@@ -1,21 +1,17 @@
-from typing import List, Dict
-from app.tools.sql import get_table_names, get_table_schema
+from typing import List
+
+from app.tools.sql import get_table_names
+from app.services.data_dictionary import get_schema_context
+
 
 def get_database_schema_string(table_names: List[str] = None) -> str:
     """
-    Returns a formatted string containing the schema for the specified tables.
-    If no tables are specified, returns schema for all tables.
+    Returns rich schema context for the specified tables, combining the live
+    database DDL with the data dictionary's descriptions, enums, relationships,
+    and query notes. If no tables are specified, returns context for all tables.
     """
-    if not table_names:
-        table_names = get_table_names()
-    
-    schema_parts = []
-    for table in table_names:
-        schema = get_table_schema(table)
-        if schema:
-            schema_parts.append(schema)
-            
-    return "\n\n".join(schema_parts)
+    return get_schema_context(table_names)
+
 
 def get_all_table_names_formatted() -> str:
     """Returns a comma-separated string of all table names."""

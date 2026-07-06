@@ -1,11 +1,11 @@
 from app.state.state import AgentState
-from app.services.llm import get_openai_client, get_model
+from app.services.llm import get_llm_client, get_model
 
 async def query_rewriter_node(state: AgentState):
     """
     Rewrites the user query to be more specific and SQL-friendly.
     """
-    client = get_openai_client()
+    client = get_llm_client()
     
     user_query = state["user_query"]
     

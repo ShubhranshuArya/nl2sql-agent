@@ -10,7 +10,7 @@ An AI-powered application that lets non-technical users ask questions in plain E
 - **Interactive Visualizations**: Dynamically generates Vega-Lite charts when data suits visual representation.
 - **Scope Guardrails**: A General Agent politely handles out-of-scope queries.
 - **Real-time Streaming**: Server-Sent Events (SSE) stream the agent's reasoning steps and response tokens live.
-- **Provider-Agnostic LLM**: Works with any OpenAI-compatible endpoint — OpenAI, Amazon Bedrock, Groq, etc.
+- **Model-Agnostic LLM**: Works with any LLM endpoint exposing a Chat Completions API, selected via configuration — e.g. Amazon Bedrock.
 - **Modern UI**: Polished, responsive React frontend with glassmorphism design.
 
 ## Architecture
@@ -71,7 +71,7 @@ See [`context/data-card.md`](context/data-card.md) for full schema details and [
 - **Node.js** 18 or higher
 - **uv** (recommended Python package manager) — [install](https://docs.astral.sh/uv/getting-started/installation/)
 - **npm**
-- An API key for any **OpenAI-compatible LLM endpoint**
+- An API key for your chosen **LLM endpoint**
 
 ### 1. Build the database
 
@@ -104,15 +104,15 @@ LLM_BASE_URL=
 LLM_MODEL=gpt-4o
 ```
 
-**Using Amazon Bedrock (mantle endpoint):**
+**Using Amazon Bedrock:**
 
 ```env
 LLM_API_KEY=<your Bedrock API key>
-LLM_BASE_URL=https://bedrock-mantle.us-east-1.api.aws/v1
-LLM_MODEL=openai.gpt-oss-120b
+LLM_BASE_URL=<your Bedrock endpoint URL>
+LLM_MODEL=<a model id served by the endpoint>
 ```
 
-> Any model that supports the `/v1/chat/completions` API will work. For Bedrock, use model IDs under the `openai.*` prefix (e.g. `openai.gpt-oss-120b`). Anthropic Claude models on Bedrock use the Messages API and are not compatible with Chat Completions.
+> The client is model-agnostic: any endpoint that exposes a Chat Completions API will work. Set `LLM_BASE_URL` to select the provider and `LLM_MODEL` to a model it serves.
 
 ### 3. Frontend setup
 

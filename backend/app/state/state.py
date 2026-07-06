@@ -24,6 +24,7 @@ class AgentState(TypedDict):
     natural_response: str
     visualization_spec: Optional[Dict[str, Any]]
     needs_visualization: bool
+    visualization_type: Optional[str]  # "bar" | "line" | "pie" | "scatter" | None
     
     # Logging
     logs: Annotated[List[str], operator.add]

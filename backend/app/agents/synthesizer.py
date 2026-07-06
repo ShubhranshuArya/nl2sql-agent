@@ -1,11 +1,11 @@
 from app.state.state import AgentState
-from app.services.llm import get_openai_client, get_model
+from app.services.llm import get_llm_client, get_model
 
 async def response_synthesizer_node(state: AgentState):
     """
     Synthesizes a natural language response based on the query results.
     """
-    client = get_openai_client()
+    client = get_llm_client()
     
     user_query = state["user_query"]
     sql_query = state.get("generated_sql", "No SQL generated")

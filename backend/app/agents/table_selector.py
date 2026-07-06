@@ -1,27 +1,30 @@
 from typing import List
 
 from app.state.state import AgentState
-from app.services.llm import get_openai_client, get_model, parse_json_response
+from app.services.llm import get_llm_client, get_model, parse_json_response
 from app.tools.sql import get_table_names
+from app.services.data_dictionary import get_table_catalog
 
 async def table_selector_node(state: AgentState):
     """
     Selects the relevant tables for the user query from the database schema.
     Uses a provider-agnostic prompt-based JSON output.
     """
-    client = get_openai_client()
+    client = get_llm_client()
     
     all_tables = get_table_names()
-    formatted_tables = ", ".join(all_tables)
+    table_catalog = get_table_catalog()
     
     # Use refined query if available, closely matching the user intent
     query_to_use = state.get("refined_query", state["user_query"])
     
     system_prompt = f"""You are an expert database architect.
     Your task is to select the most relevant tables from the database to answer the user's query.
-    The available tables are: {formatted_tables}.
+    The available tables (with descriptions) are:
+    {table_catalog}
+
     Return a list of ONLY the table names that are strictly necessary.
-    Do not halluncinate table names.
+    Do not hallucinate table names; use the exact table names shown above.
 
     Respond with ONLY a JSON object in this exact form:
     {{"selected_tables": ["TableA", "TableB"]}}

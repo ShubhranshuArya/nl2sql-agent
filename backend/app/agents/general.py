@@ -1,20 +1,24 @@
 from app.state.state import AgentState
-from app.services.llm import get_openai_client, get_model
+from app.services.llm import get_llm_client, get_model
+from app.services.data_dictionary import get_domain_description
 
 async def general_agent_node(state: AgentState):
     """
     Handles queries that are not relevant to the e-commerce database domain.
     Provides a helpful response and guides the user back to supported topics.
     """
-    client = get_openai_client()
+    client = get_llm_client()
     user_query = state["user_query"]
 
-    system_prompt = """You are a helpful assistant for a Global E-Commerce & Supply Chain Analytics application.
+    system_prompt = f"""You are a helpful assistant for a Global E-Commerce & Supply Chain Analytics application.
     The user has asked a question that is outside the scope of this database.
+
+    For context, the database you support covers the following:
+    {get_domain_description()}
 
     Your task is to:
     1. Politely acknowledge the user's query.
-    2. Explain that you specialize in analyzing e-commerce and supply chain data — covering sales transactions, customer behaviour, product performance, returns, inventory levels, supplier costs, price history, and marketing spend.
+    2. Explain that you specialize in analyzing this e-commerce and supply chain data.
     3. Suggest 2-3 relevant questions they could ask instead.
 
     Keep the tone professional and helpful.

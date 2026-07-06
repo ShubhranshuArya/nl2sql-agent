@@ -127,14 +127,15 @@ END ←────────────────────────�
 - **Output**: `natural_response`
 
 #### Visualization Planner
-- **Purpose**: Determines if data should be visualized
+- **Purpose**: Determines if data should be visualized and picks a chart type
 - **LLM**: Configurable via `LLM_MODEL`; uses prompt-based JSON output
-- **Output**: Decision to create visualization
+- **Output**: `needs_visualization` decision and `visualization_type` (bar/line/pie/scatter)
 
 #### Visualization Generator
-- **Purpose**: Creates Vega-Lite specification
+- **Purpose**: Creates a Vega-Lite v6 specification
+- **Grounding**: Prompt includes curated Vega-Lite v6 few-shot examples (matching the frontend's `vega-lite` v6 renderer) selected by the planner's chart type; only a small data sample is sent for column/type inference
 - **LLM**: Configurable via `LLM_MODEL`; response parsed via `parse_json_response()`
-- **Output**: `visualization_spec` (JSON)
+- **Output**: `visualization_spec` (JSON) with the full result data and v6 `$schema` injected server-side
 
 ### 4. Streaming Architecture
 
@@ -144,7 +145,7 @@ END ←────────────────────────�
 from langgraph.config import get_stream_writer
 
 writer = get_stream_writer()
-async for chunk in openai_stream:
+async for chunk in llm_stream:
     content = chunk.choices[0].delta.content
     writer(content)  # Emits to 'custom' stream
     full_response += content
@@ -207,7 +208,7 @@ if (event.type === 'token') {
 **Backend:**
 - FastAPI (API framework)
 - LangGraph (Agent orchestration)
-- OpenAI-compatible SDK (provider-agnostic LLM interactions)
+- Model-agnostic LLM client (Chat Completions API)
 - SQLite (Database, built from CSVs via `build_db.py`)
 - Python 3.11+
 
@@ -225,7 +226,7 @@ if (event.type === 'token') {
 
 ## Design Principles
 
-1. **Provider-Agnostic LLM**: OpenAI-compatible SDK with configurable `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL` — works with OpenAI, Amazon Bedrock, Groq, and others
+1. **Model-Agnostic LLM**: Configurable `LLM_API_KEY`, `LLM_BASE_URL`, `LLM_MODEL` — works with any LLM endpoint exposing a Chat Completions API (e.g. Amazon Bedrock)
 2. **Native Streaming**: LangGraph's `get_stream_writer()` for custom data
 3. **Separation of Concerns**: Clear boundaries between agents, API, and UI
 4. **User Transparency**: Visible agent reasoning process
