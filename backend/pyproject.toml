@@ -18,6 +18,16 @@ dependencies = [
     "pyyaml>=6.0.1"
 ]
 
+[project.optional-dependencies]
+# Evaluation extras. Imported lazily by app.evaluation.ragas_eval so the core
+# app and the deterministic eval path never depend on these being installed.
+# Install with: uv sync --extra eval
+eval = [
+    "ragas>=0.2.0",
+    "langchain-openai>=0.1.0",
+    "pytest>=8.0.0",
+]
+
 [build-system]
 requires = ["hatchling"]
 build-backend = "hatchling.build"

@@ -13,17 +13,28 @@ export const ThinkingProcess: React.FC<ThinkingProcessProps> = ({ events, isComp
 
     const getNodeInfo = (nodeName: string) => {
         switch (nodeName) {
-            case 'query_router': return { label: 'Analyzing Intent', icon: Brain, color: 'text-purple-500', bg: 'bg-purple-100' };
-            case 'query_rewriter': return { label: 'Refining Query', icon: Sparkles, color: 'text-amber-500', bg: 'bg-amber-100' };
-            case 'table_selector': return { label: 'Selecting Tables', icon: Database, color: 'text-blue-500', bg: 'bg-blue-100' };
-            case 'sql_generator': return { label: 'Generating SQL', icon: Terminal, color: 'text-slate-600', bg: 'bg-slate-100' };
-            case 'sql_validator': return { label: 'Validating SQL', icon: CheckCircle2, color: 'text-green-500', bg: 'bg-green-100' };
-            case 'sql_executor': return { label: 'Executing Query', icon: Database, color: 'text-emerald-600', bg: 'bg-emerald-100' };
-            case 'response_synthesizer': return { label: 'Synthesizing Answer', icon: FileText, color: 'text-indigo-500', bg: 'bg-indigo-100' };
-            case 'visualization_planner': return { label: 'Planning Visuals', icon: PieChart, color: 'text-pink-500', bg: 'bg-pink-100' };
-            case 'visualization_generator': return { label: 'Creating Chart', icon: PieChart, color: 'text-pink-600', bg: 'bg-pink-100' };
-            case 'general_agent': return { label: 'Answering', icon: Bot, color: 'text-blue-600', bg: 'bg-blue-100' };
-            default: return { label: 'Processing', icon: Loader2, color: 'text-gray-500', bg: 'bg-gray-100' };
+            case 'query_router': return { label: 'Analyzing Intent', icon: Brain, color: 'text-slate-500', bg: 'bg-slate-100' };
+            case 'query_rewriter': return { label: 'Refining Query', icon: Sparkles, color: 'text-slate-500', bg: 'bg-slate-100' };
+            case 'table_selector': return { label: 'Selecting Tables', icon: Database, color: 'text-slate-500', bg: 'bg-slate-100' };
+            case 'sql_generator': return { label: 'Generating SQL', icon: Terminal, color: 'text-slate-500', bg: 'bg-slate-100' };
+            case 'sql_validator': return { label: 'Validating SQL', icon: CheckCircle2, color: 'text-slate-500', bg: 'bg-slate-100' };
+            case 'sql_executor': return { label: 'Executing Query', icon: Database, color: 'text-slate-500', bg: 'bg-slate-100' };
+            case 'response_synthesizer': return { label: 'Synthesizing Answer', icon: FileText, color: 'text-slate-500', bg: 'bg-slate-100' };
+            case 'visualization_planner': return { label: 'Planning Visuals', icon: PieChart, color: 'text-slate-500', bg: 'bg-slate-100' };
+            case 'visualization_generator': return { label: 'Creating Chart', icon: PieChart, color: 'text-slate-500', bg: 'bg-slate-100' };
+            case 'general_agent': return { label: 'Answering', icon: Bot, color: 'text-slate-500', bg: 'bg-slate-100' };
+            default: return { label: 'Processing', icon: Loader2, color: 'text-slate-500', bg: 'bg-slate-100' };
+        }
+    };
+
+    // Map a step's execution status to its icon box colors.
+    // executing -> yellow, done -> green, failed -> red, viz-with-no-chart -> light purple.
+    const getStatusStyle = (status: 'executing' | 'done' | 'failed' | 'no_chart') => {
+        switch (status) {
+            case 'executing': return { bg: 'bg-amber-100', icon: 'text-amber-600' };
+            case 'failed': return { bg: 'bg-red-100', icon: 'text-red-600' };
+            case 'no_chart': return { bg: 'bg-purple-100', icon: 'text-purple-500' };
+            default: return { bg: 'bg-green-100', icon: 'text-green-600' };
         }
     };
 
@@ -48,10 +59,16 @@ export const ThinkingProcess: React.FC<ThinkingProcessProps> = ({ events, isComp
 
     if (steps.length === 0) return null;
 
+    // A chart is considered produced if any step carries a visualization spec
+    // or the dedicated visualization_generator node ran.
+    const chartRendered = steps.some(
+        (s) => !!s.event.visualization || s.node === 'visualization_generator'
+    );
+
     return (
         <div className="w-full max-w-2xl my-6">
             <div className="flex items-center space-x-2 mb-4 px-1">
-                <div className="h-4 w-1 bg-gradient-to-b from-blue-500 to-indigo-600 rounded-full"></div>
+                <div className="h-4 w-1 bg-gradient-to-b from-slate-300 to-slate-400 rounded-full"></div>
                 <span className="text-xs font-semibold text-gray-400 uppercase tracking-widest">Thinking Process</span>
             </div>
 
@@ -63,9 +80,29 @@ export const ThinkingProcess: React.FC<ThinkingProcessProps> = ({ events, isComp
                 />
 
                 {steps.map((step, idx) => {
-                    const { label, icon: Icon, color, bg } = getNodeInfo(step.node);
+                    const { label, icon: Icon } = getNodeInfo(step.node);
                     const isLast = idx === steps.length - 1;
                     const isActive = isLast && !isComplete;
+
+                    const isVizStep =
+                        step.node === 'visualization_planner' ||
+                        step.node === 'visualization_generator';
+
+                    let status: 'executing' | 'done' | 'failed' | 'no_chart';
+                    if (isActive) {
+                        // Step is still running (not finished yet).
+                        status = 'executing';
+                    } else if (step.event.error) {
+                        // Step reported an error.
+                        status = 'failed';
+                    } else if (isVizStep && !chartRendered) {
+                        // Visualization decided not to produce a chart.
+                        status = 'no_chart';
+                    } else {
+                        status = 'done';
+                    }
+
+                    const { bg, icon: iconColor } = getStatusStyle(status);
 
                     return (
                         <div key={idx} className={cn(
@@ -75,16 +112,16 @@ export const ThinkingProcess: React.FC<ThinkingProcessProps> = ({ events, isComp
                             <div className={cn(
                                 "absolute -left-1.5 top-0 w-4 h-4 rounded-full border-2 bg-white flex items-center justify-center transition-all duration-300 z-10",
                                 isActive
-                                    ? "border-blue-500 shadow-[0_0_0_4px_rgba(59,130,246,0.1)] scale-110"
+                                    ? "border-slate-900 shadow-[0_0_0_4px_rgba(15,23,42,0.08)] scale-110"
                                     : "border-gray-300 group-hover:border-gray-400"
                             )}>
-                                {isActive && <div className="w-1.5 h-1.5 bg-blue-500 rounded-full animate-pulse" />}
+                                {isActive && <div className="w-1.5 h-1.5 bg-slate-900 rounded-full animate-pulse" />}
                             </div>
 
                             <div className="flex flex-col space-y-3">
                                 <div className="flex items-center space-x-3">
                                     <div className={cn("p-1.5 rounded-md transition-colors duration-300", bg)}>
-                                        <Icon className={cn("w-4 h-4", color, isActive && "animate-pulse")} />
+                                        <Icon className={cn("w-4 h-4", iconColor, isActive && "animate-pulse")} />
                                     </div>
                                     <span className="text-sm font-medium transition-colors duration-300 text-gray-900">
                                         {label}
@@ -96,15 +133,15 @@ export const ThinkingProcess: React.FC<ThinkingProcessProps> = ({ events, isComp
                                     <div className="mt-2 bg-slate-900 rounded-xl p-4 overflow-x-auto border border-slate-700 shadow-lg animate-in fade-in slide-in-from-left-4 duration-500 relative group/code">
                                         <div className="absolute top-2 right-2 flex space-x-1 opacity-0 group-hover/code:opacity-100 transition-opacity">
                                             <div className="flex space-x-1">
-                                                <div className="w-2.5 h-2.5 rounded-full bg-red-500/20"></div>
-                                                <div className="w-2.5 h-2.5 rounded-full bg-yellow-500/20"></div>
-                                                <div className="w-2.5 h-2.5 rounded-full bg-green-500/20"></div>
+                                                <div className="w-2.5 h-2.5 rounded-full bg-slate-500/20"></div>
+                                                <div className="w-2.5 h-2.5 rounded-full bg-slate-500/20"></div>
+                                                <div className="w-2.5 h-2.5 rounded-full bg-slate-500/20"></div>
                                             </div>
                                         </div>
                                         <div className="flex items-center text-xs text-slate-500 mb-2 font-mono tracking-wide">
                                             <Terminal className="w-3 h-3 mr-1.5" /> SQL GENERATED
                                         </div>
-                                        <code className="text-sm font-mono text-blue-300 whitespace-pre-wrap leading-relaxed">
+                                        <code className="text-sm font-mono text-slate-300 whitespace-pre-wrap leading-relaxed">
                                             {step.event.sql}
                                         </code>
                                     </div>

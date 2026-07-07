@@ -1,0 +1,275 @@
+{
+  "mode": "single_shot",
+  "deterministic": {
+    "overall": {
+      "n_cases": 15,
+      "execution_accuracy": 0.8667,
+      "safety_rate": 1.0,
+      "executability_rate": 0.9333,
+      "exact_result_match_rate": 0.7333
+    },
+    "by_category": {
+      "boolean_flag_filter": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "computed_ratio_join": {
+        "n_cases": 1,
+        "execution_accuracy": 0.0,
+        "safety_rate": 1.0,
+        "executability_rate": 0.0
+      },
+      "cte_subquery": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "date_filter": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "distinct_count": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "enum_categorical": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "group_by_aggregate": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "having_clause": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "monthly_time_series": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "multi_condition_where": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "single_table_aggregate": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "single_table_filter": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "three_table_join": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "top_n_order_limit": {
+        "n_cases": 1,
+        "execution_accuracy": 0.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      },
+      "two_table_join": {
+        "n_cases": 1,
+        "execution_accuracy": 1.0,
+        "safety_rate": 1.0,
+        "executability_rate": 1.0
+      }
+    }
+  },
+  "per_case": [
+    {
+      "id": "sql01_single_filter",
+      "category": "single_table_filter",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": true,
+      "attempts": 1,
+      "generated_sql": "SELECT product_id, name FROM products WHERE is_active = 1 AND category = 'Electronics'",
+      "notes": []
+    },
+    {
+      "id": "sql02_single_aggregate",
+      "category": "single_table_aggregate",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": true,
+      "attempts": 1,
+      "generated_sql": "SELECT SUM(revenue_usd) AS total_revenue FROM transactions",
+      "notes": []
+    },
+    {
+      "id": "sql03_group_by",
+      "category": "group_by_aggregate",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": false,
+      "attempts": 1,
+      "generated_sql": "SELECT channel, SUM(revenue_usd) AS total_revenue\nFROM transactions\nGROUP BY channel\nORDER BY total_revenue DESC",
+      "notes": []
+    },
+    {
+      "id": "sql04_top_n",
+      "category": "top_n_order_limit",
+      "execution_match": false,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": false,
+      "attempts": 1,
+      "generated_sql": "SELECT p.product_id, p.name, SUM(t.revenue_usd) AS total_revenue\nFROM transactions t\nJOIN products p ON t.product_id = p.product_id\nGROUP BY p.product_id, p.name\nORDER BY total_revenue DESC\nLIMIT 5",
+      "notes": [
+        "result set differs from golden"
+      ]
+    },
+    {
+      "id": "sql05_two_table_join",
+      "category": "two_table_join",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": false,
+      "attempts": 1,
+      "generated_sql": "SELECT c.country AS country, SUM(t.revenue_usd) AS total_revenue_usd\nFROM transactions t\nJOIN customers c ON t.customer_id = c.customer_id\nGROUP BY c.country\nORDER BY total_revenue_usd DESC",
+      "notes": []
+    },
+    {
+      "id": "sql06_three_table_join",
+      "category": "three_table_join",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": true,
+      "attempts": 1,
+      "generated_sql": "SELECT p.category, COUNT(*) AS return_count\nFROM returns r\nJOIN products p ON r.product_id = p.product_id\nGROUP BY p.category",
+      "notes": []
+    },
+    {
+      "id": "sql07_date_filter",
+      "category": "date_filter",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": true,
+      "attempts": 1,
+      "generated_sql": "SELECT COUNT(*) AS order_count\nFROM transactions\nWHERE date >= '2023-01-01' AND date < '2024-01-01'",
+      "notes": []
+    },
+    {
+      "id": "sql08_time_series",
+      "category": "monthly_time_series",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": true,
+      "attempts": 1,
+      "generated_sql": "SELECT year_month, units_sold FROM price_history WHERE product_id = 'PROD0001' ORDER BY year_month",
+      "notes": []
+    },
+    {
+      "id": "sql09_distinct_count",
+      "category": "distinct_count",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": true,
+      "attempts": 1,
+      "generated_sql": "SELECT COUNT(DISTINCT customer_id) AS distinct_customers FROM transactions",
+      "notes": []
+    },
+    {
+      "id": "sql10_multi_condition",
+      "category": "multi_condition_where",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": true,
+      "attempts": 1,
+      "generated_sql": "SELECT COUNT(*) AS completed_orders_with_discount_gt_20pct\nFROM transactions\nWHERE status = 'completed' AND discount_pct > 0.20",
+      "notes": []
+    },
+    {
+      "id": "sql11_cte_subquery",
+      "category": "cte_subquery",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": true,
+      "attempts": 1,
+      "generated_sql": "WITH cust_spend AS (\n    SELECT customer_id, SUM(revenue_usd) AS total_spend\n    FROM transactions\n    GROUP BY customer_id\n),\navg_spend AS (\n    SELECT AVG(total_spend) AS avg_spend FROM cust_spend\n)\nSELECT c.customer_id, c.first_name, c.last_name, cs.total_spend\nFROM cust_spend cs\nJOIN customers c ON c.customer_id = cs.customer_id\nCROSS JOIN avg_spend a\nWHERE cs.total_spend > a.avg_spend",
+      "notes": []
+    },
+    {
+      "id": "sql12_having",
+      "category": "having_clause",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": true,
+      "attempts": 1,
+      "generated_sql": "SELECT category, SUM(revenue_usd) AS total_revenue\nFROM transactions\nGROUP BY category\nHAVING total_revenue > 1000000",
+      "notes": []
+    },
+    {
+      "id": "sql13_boolean_flag",
+      "category": "boolean_flag_filter",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": true,
+      "attempts": 1,
+      "generated_sql": "SELECT country, COUNT(*) AS premium_verified_customers\nFROM customers\nWHERE is_premium = 1 AND email_verified = 1\nGROUP BY country",
+      "notes": []
+    },
+    {
+      "id": "sql14_enum_filter",
+      "category": "enum_categorical",
+      "execution_match": true,
+      "is_safe": true,
+      "executed": true,
+      "exact_result_match": true,
+      "attempts": 1,
+      "generated_sql": "SELECT reason, COUNT(*) AS return_count FROM returns GROUP BY reason ORDER BY reason",
+      "notes": []
+    },
+    {
+      "id": "sql15_computed_ratio",
+      "category": "computed_ratio_join",
+      "execution_match": false,
+      "is_safe": true,
+      "executed": false,
+      "exact_result_match": false,
+      "attempts": 1,
+      "generated_sql": "WITH orders AS (\n    SELECT category, COUNT(*) AS order_cnt\n    FROM transactions\n    GROUP BY category\n), returns AS (\n    SELECT t.category, COUNT(*) AS return_cnt\n    FROM returns r\n    JOIN transactions t ON r.transaction_id = t.transaction_id\n    GROUP BY t.category\n)\nSELECT\n    o.category,\n    COALESCE(r.return_cnt, 0) * 1.0 / NULLIF(o.order_cnt, 0) AS return_rate\nFROM orders o\nLEFT JOIN returns r ON o.category = r.category",
+      "notes": [
+        "failed to execute: Query execution failed: circular reference: returns"
+      ]
+    }
+  ]
+}

@@ -68,6 +68,17 @@ async def visualization_generator_node(state: AgentState):
     5. Set "width": "container" to ensure it takes the full available width.
     6. Set "height": 300 for a good aspect ratio.
     7. Enable "autosize": {{ "type": "fit", "contains": "padding" }}.
+    8. Use a minimal pastel color theme. Always include a top-level "config" object exactly like this:
+       "config": {{
+         "background": "white",
+         "view": {{ "stroke": null }},
+         "range": {{ "category": ["#818CF8", "#C4B5FD", "#F9A8D4", "#A5B4FC", "#DDD6FE", "#FBCFE8"] }},
+         "mark": {{ "color": "#818CF8" }},
+         "axis": {{ "gridColor": "#EEF2F6", "domainColor": "#E2E8F0", "tickColor": "#E2E8F0", "labelColor": "#64748B", "titleColor": "#334155", "labelFontSize": 11, "grid": true }},
+         "legend": {{ "labelColor": "#64748B", "titleColor": "#334155" }},
+         "title": {{ "color": "#0F172A" }}
+       }}
+    9. For any color encoding, rely on the categorical "range" above. For single-series bar/line/area charts, do NOT set an explicit color; let the default mark color apply. Never use bright default Vega colors.
     """
     
     response = await client.chat.completions.create(

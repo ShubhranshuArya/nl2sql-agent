@@ -34,6 +34,11 @@ async def event_generator(user_message: str, thread_id: str):
                             
                         if "generated_sql" in state_update:
                             event_payload["sql"] = state_update["generated_sql"]
+
+                        # Forward execution errors so the UI can mark a failed step.
+                        # None on success clears any prior error for the same node.
+                        if "query_error" in state_update:
+                            event_payload["error"] = state_update["query_error"]
                         
                         if "query_result" in state_update:
                             try:
