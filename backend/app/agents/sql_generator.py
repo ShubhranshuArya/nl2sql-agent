@@ -1,6 +1,24 @@
+import os
+
 from app.state.state import AgentState
-from app.services.llm import get_llm_client, get_model
+from app.services.llm import get_llm_client, get_model, wrap_user_input
 from app.tools.schema import get_database_schema_string
+
+PROMPT_CACHE_ENABLED = os.getenv("LLM_PROMPT_CACHE", "0").lower() in ("1", "true", "yes")
+
+
+def _system_content(text: str):
+    """Return the system prompt as a cacheable content block when enabled.
+
+    When LLM_PROMPT_CACHE is on, we emit a content-part list carrying an
+    Anthropic/Bedrock-style ``cache_control`` breakpoint so the static schema +
+    rules prefix is prefilled once and reused across retries. When off, we return
+    the plain string, preserving the exact payload sent today (no behavior change).
+    """
+    if PROMPT_CACHE_ENABLED:
+        return [{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}]
+    return text
+
 
 async def sql_generator_node(state: AgentState):
     """
@@ -40,8 +58,8 @@ async def sql_generator_node(state: AgentState):
     print(f"[SQL Generator] Query error: {query_error}")
     
     messages = [
-        {"role": "system", "content": system_prompt},
-        {"role": "user", "content": query_to_use}
+        {"role": "system", "content": _system_content(system_prompt)},
+        {"role": "user", "content": wrap_user_input(query_to_use)}
     ]
     
     # Add error feedback for retry

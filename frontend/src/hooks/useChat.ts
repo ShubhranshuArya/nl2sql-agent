@@ -30,7 +30,7 @@ export const useChat = () => {
         setMessages(prev => [...prev, userMsg]);
 
         try {
-            const response = await fetch('http://localhost:8000/api/chat', {
+            const response = await fetch('http://localhost:8010/api/chat', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
