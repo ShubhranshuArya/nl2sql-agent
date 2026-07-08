@@ -9,11 +9,6 @@ PROMPT_CACHE_ENABLED = os.getenv("LLM_PROMPT_CACHE", "0").lower() in ("1", "true
 
 def _system_content(text: str):
     """Return the system prompt as a cacheable content block when enabled.
-
-    When LLM_PROMPT_CACHE is on, we emit a content-part list carrying an
-    Anthropic/Bedrock-style ``cache_control`` breakpoint so the static schema +
-    rules prefix is prefilled once and reused across retries. When off, we return
-    the plain string, preserving the exact payload sent today (no behavior change).
     """
     if PROMPT_CACHE_ENABLED:
         return [{"type": "text", "text": text, "cache_control": {"type": "ephemeral"}}]

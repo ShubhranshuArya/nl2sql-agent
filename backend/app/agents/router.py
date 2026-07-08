@@ -5,7 +5,6 @@ from app.services.data_dictionary import get_domain_description
 async def query_router_node(state: AgentState):
     """
     Analyzes the user query to determine if it's relevant to the e-commerce database.
-    Uses a provider-agnostic prompt-based JSON output.
     """
     client = get_llm_client()
 
