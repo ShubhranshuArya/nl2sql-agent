@@ -99,37 +99,6 @@ nl2sql-agent/
 
 ## Data Flow
 
-### Query Lifecycle (Agent Graph)
-
-Irrelevant/chitchat queries are answered by the General Agent and stop early. Relevant queries flow through the full analytics pipeline, with a self-correction retry loop (max 3) around SQL generation.
-
-```mermaid
-graph TD
-    User(User Query) --> Router{Query Router}
-
-    Router -- Irrelevant --> General[General Agent]
-    Router -- Relevant --> Rewriter[Query Rewriter]
-
-    General --> Done[END]
-
-    Rewriter --> TableSelector[Table Selector]
-    TableSelector --> SQLGen[SQL Generator]
-    SQLGen --> Validator{SQL Validator}
-
-    Validator -- "Invalid (retry <= 3)" --> SQLGen
-    Validator -- "Invalid (max retries)" --> Done
-    Validator -- Valid --> Executor[SQL Executor]
-
-    Executor -- "Error (retry <= 3)" --> SQLGen
-    Executor -- Success --> Synthesizer[Response Synthesizer]
-    Executor -- "Error (max retries)" --> Synthesizer
-
-    Synthesizer --> VizPlanner{Visualization Planner}
-    VizPlanner -- "No viz" --> Done
-    VizPlanner -- "Needs viz" --> VizGen[Visualization Generator]
-    VizGen --> Done
-```
-
 ### SSE Streaming Flow
 
 ```

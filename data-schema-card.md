@@ -1,4 +1,4 @@
-# ER Diagram — Global E-Commerce & Supply Chain Database
+# Global E-Commerce & Supply Chain Database
 
 Entity-relationship diagram for the 8 interconnected tables. Crow's-foot notation
 (`||` = exactly one, `o{` = zero-or-many). Primary keys are marked `PK`, foreign

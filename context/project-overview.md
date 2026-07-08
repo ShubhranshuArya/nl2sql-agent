@@ -24,17 +24,6 @@ This agent removes that barrier. It exposes an 8-table, join-heavy dataset throu
 
 ---
 
-## Demo Guideline
-
-- No authentication or production deployment is required.
-- Use synthetic data where appropriate.
-- Git repo or ZIP file of the working solution with all necessary files.
-- A README.md covering setup and run instructions.
-- A demo video of 5 minutes max, walking through the solution.
-- Values: clear thinking and structured communication.
-
----
-
 ## Interface & UX
 
 A single-page React chat application — no authentication, no multi-page navigation. The whole product is one conversation surface, branded "E-Commerce Analyst / Contango Agent".
