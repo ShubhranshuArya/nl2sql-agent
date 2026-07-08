@@ -4,6 +4,8 @@ This application lets non-technical users ask questions in plain English about G
 
 Under the hood it is an agentic workflow built with [LangGraph](https://langchain-ai.github.io/langgraph/): a team of specialized nodes (Router, Rewriter, Table Selector, SQL Generator, Validator, Executor, Response Synthesizer, and Visualization Planner/Generator) collaborate on each query. The LLM backend is model-agnostic — any endpoint exposing a Chat Completions API works via configuration alone.
 
+<img width="800" height="625" alt="data-analyst-agent" src="https://github.com/user-attachments/assets/6ed4be7c-72fd-4860-b87d-62b0d5013fff" />
+
 ## Quick Start (Agentic)
 
 This project is designed to be set up by a coding agent. Paste the prompt below into your agent (Cursor, etc.), and it will read this file and run everything for you. Replace `<your OS>` with your platform (e.g. Windows / macOS / Linux).
